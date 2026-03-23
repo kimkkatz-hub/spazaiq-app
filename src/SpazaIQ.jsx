@@ -148,17 +148,22 @@ const LANG = {
 };
 
 const TOOLS = [
-  { id: "stockorder", icon: "📦", label: "Stock Advisor",       group: "Daily Operations" },
-  { id: "pricing",    icon: "🏷️", label: "Pricing Calculator",  group: "Daily Operations" },
-  { id: "cashflow",   icon: "💵", label: "Cash Flow Tracker",   group: "Daily Operations" },
-  { id: "supplier",   icon: "🤝", label: "Supplier Negotiator", group: "Daily Operations" },
-  { id: "sars",       icon: "🧾", label: "SARS Tax Helper",     group: "Compliance & Legal" },
-  { id: "uif",        icon: "🛡️", label: "UIF Registration",    group: "Compliance & Legal" },
-  { id: "cipc",       icon: "📋", label: "CIPC Guide",          group: "Compliance & Legal" },
-  { id: "license",    icon: "🪪", label: "Business Licence",    group: "Compliance & Legal" },
-  { id: "loan",       icon: "🏦", label: "Loan Eligibility",    group: "Growth & Finance" },
-  { id: "grant",      icon: "🎯", label: "Grant Finder",        group: "Growth & Finance" },
-  { id: "expand",     icon: "🚀", label: "Growth Advisor",      group: "Growth & Finance" },
+  { id: "stockorder", icon: "📦", label: "Stock Advisor",        group: "Daily Operations" },
+  { id: "pricing",    icon: "🏷️", label: "Pricing Calculator",   group: "Daily Operations" },
+  { id: "cashflow",   icon: "💵", label: "Cash Flow Tracker",    group: "Daily Operations" },
+  { id: "supplier",   icon: "🤝", label: "Supplier Negotiator",  group: "Daily Operations" },
+  { id: "profit",     icon: "📊", label: "Daily Profit Tracker", group: "Daily Operations" },
+  { id: "loadshed",   icon: "⚡", label: "Load Shedding Planner",group: "Daily Operations" },
+  { id: "stokvel",    icon: "💰", label: "Stokvel Manager",      group: "Daily Operations" },
+  { id: "competitor", icon: "🏪", label: "Competitor Prices",    group: "Daily Operations" },
+  { id: "whatsapp",   icon: "📱", label: "WhatsApp Orders",      group: "Daily Operations" },
+  { id: "sars",       icon: "🧾", label: "SARS Tax Helper",      group: "Compliance & Legal" },
+  { id: "uif",        icon: "🛡️", label: "UIF Registration",     group: "Compliance & Legal" },
+  { id: "cipc",       icon: "📋", label: "CIPC Guide",           group: "Compliance & Legal" },
+  { id: "license",    icon: "🪪", label: "Business Licence",     group: "Compliance & Legal" },
+  { id: "loan",       icon: "🏦", label: "Loan Eligibility",     group: "Growth & Finance" },
+  { id: "grant",      icon: "🎯", label: "Grant Finder",         group: "Growth & Finance" },
+  { id: "expand",     icon: "🚀", label: "Growth Advisor",       group: "Growth & Finance" },
 ];
 
 const PROMPTS = {
@@ -173,11 +178,13 @@ const PROMPTS = {
   loan:       `You are a SA small business loan advisor. Return JSON ONLY: {"eligibility_score":70,"recommended_options":[{"lender":"","product":"","amount_range":"","interest_rate":"","requirements":"","pros":"","cons":""}],"avoid":[{"lender":"","reason":""}],"documents_needed":[],"tips_to_improve_eligibility":[],"warning":"","summary":""}`,
   grant:      `You are a SA small business grant advisor. Return JSON ONLY: {"available_grants":[{"name":"","funder":"","amount":"","eligibility":"","deadline":"","apply_at":"","difficulty":"EASY"}],"best_match":"","total_available":"","application_tips":[],"documents_needed":[],"warning_about_scams":"","summary":""}`,
   expand:     `You are a SA township business growth advisor. Return JSON ONLY: {"growth_score":70,"quick_wins":[{"idea":"","cost_to_start":0,"monthly_revenue_potential":0,"difficulty":"EASY"}],"medium_term":[{"idea":"","investment_needed":0,"timeline":"","potential":""}],"risks":[],"recommended_first_step":"","funding_options":[],"summary":""}`,
+  loadshed:   `You are a SA spaza shop advisor helping owners plan for load shedding. Return JSON ONLY: {"urgency":"MEDIUM","stock_now":[{"product":"","reason":"","qty_to_stock":"","markup_opportunity":true}],"avoid_stocking":[{"product":"","reason":""}],"operational_tips":[],"generator_advice":"","cash_handling_tip":"","customer_tip":"","estimated_extra_daily_revenue":"","summary":""}`,
+  competitor: `You are a SA spaza shop competitive pricing advisor. Return JSON ONLY: {"overall_strategy":"","pricing_responses":[{"product":"","competitor_price":"","recommended_spaza_price":"","action":"MATCH","reason":"","margin_percent":""}],"payday_tips":[],"loss_leader_suggestions":[],"products_to_promote_this_week":[],"estimated_revenue_impact":"","summary":""}`,
+  whatsapp:   `You are a SA spaza shop WhatsApp order assistant. Return JSON ONLY: {"whatsapp_message":"","follow_up_message":"","negotiation_line":"","supplier_tips":[],"summary":""}`,
 };
 
-// ─── SECURE API CALL — goes to backend, key never in browser ─────────────────
 async function callClaude(system, message, serverUrl) {
- const url = (serverUrl || "https://spazaiq-server-production.up.railway.app").replace(/\/$/, "");
+  const url = (serverUrl || "https://spazaiq-server-production.up.railway.app").replace(/\/$/, "");
   const res = await fetch(`${url}/api/ask`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -198,17 +205,14 @@ function parseJSON(raw) {
   try { return JSON.parse(cleaned); } catch {}
   const match = cleaned.match(/\{[\s\S]*\}/);
   if (match) { try { return JSON.parse(match[0]); } catch {} }
-  console.error("SpazaIQ parse failed:", raw);
   return null;
 }
 
-// ─── THEME ───────────────────────────────────────────────────────────────────
 const BG = "#0a1628"; const CARD = "#0d1e35"; const BORDER = "#1a3050";
 const ACC = "#f59e0b"; const ACC2 = "#22c55e";
 const TEXT = "#e2e8f0"; const MUTED = "#64748b"; const DIM = "#334155";
 const IMP = { HIGH: "#ef4444", MEDIUM: "#f59e0b", LOW: ACC2, EASY: ACC2, HARD: "#ef4444" };
 
-// ─── UI PRIMITIVES ───────────────────────────────────────────────────────────
 function Field({ label, value, onChange, placeholder, options, rows }) {
   const s = { width: "100%", background: "#070f1d", border: `1px solid ${BORDER}`, borderRadius: 8, padding: "10px 12px", color: TEXT, fontSize: 14, boxSizing: "border-box", resize: rows ? "vertical" : undefined };
   return (
@@ -232,7 +236,7 @@ function Err({ msg }) { return <div style={{ background: "#1a0a0a", border: "1px
 function Empty({ text }) { return <div style={{ textAlign: "center", padding: 40, color: DIM, fontSize: 13 }}>{text || "Results will appear here"}</div>; }
 function SH({ text }) { return <div style={{ fontSize: 10, color: ACC, textTransform: "uppercase", letterSpacing: 1.5, marginBottom: 8, fontWeight: 700 }}>{text}</div>; }
 
-// ─── TOOL COMPONENTS ─────────────────────────────────────────────────────────
+// ─── ORIGINAL 11 TOOLS ───────────────────────────────────────────────────────
 function StockAdvisor({ serverUrl, t }) {
   const [f, setF] = useState({ cash: "", location: "Soweto", size: "Small (1 room)", focus: "General groceries" });
   const [res, setRes] = useState(null); const [load, setLoad] = useState(false); const [err, setErr] = useState(null);
@@ -505,30 +509,226 @@ function GrowthAdvisor({ serverUrl, t }) {
   </Col></Row>);
 }
 
+// ─── 5 NEW TOOLS ─────────────────────────────────────────────────────────────
+function DailyProfitTracker() {
+  const today = new Date().toISOString().split("T")[0];
+  const [entry, setEntry] = useState({ date: today, float: "", sales: "", stock_bought: "", other_costs: "" });
+  const [entries, setEntries] = useState(() => { try { return JSON.parse(localStorage.getItem("spaza_profit") || "[]"); } catch { return []; } });
+  const s = k => v => setEntry(p => ({ ...p, [k]: v }));
+  function saveEntry() {
+    const float = parseFloat(entry.float)||0, sales = parseFloat(entry.sales)||0, stock = parseFloat(entry.stock_bought)||0, other = parseFloat(entry.other_costs)||0;
+    const profit = (sales - float) - stock - other;
+    const updated = [{ ...entry, profit, saved_at: Date.now() }, ...entries.filter(e => e.date !== entry.date)].slice(0, 30);
+    setEntries(updated); localStorage.setItem("spaza_profit", JSON.stringify(updated));
+    setEntry({ date: today, float: "", sales: "", stock_bought: "", other_costs: "" });
+  }
+  const liveProfit = (parseFloat(entry.sales)||0) - (parseFloat(entry.float)||0) - (parseFloat(entry.stock_bought)||0) - (parseFloat(entry.other_costs)||0);
+  const canSave = entry.float && entry.sales;
+  const weekEntries = entries.slice(0, 7);
+  const weekTotal = weekEntries.reduce((a, e) => a + (e.profit || 0), 0);
+  const bestDay = weekEntries.reduce((best, e) => (!best || e.profit > best.profit) ? e : best, null);
+  return (<Row><Col>
+    <Field label="Date" value={entry.date} onChange={s("date")} placeholder="YYYY-MM-DD" />
+    <Field label="Morning Float / Opening Cash (R)" value={entry.float} onChange={s("float")} placeholder="e.g. 500" />
+    <Field label="Evening Cash / Total Sales (R)" value={entry.sales} onChange={s("sales")} placeholder="e.g. 1800" />
+    <Field label="Stock Bought Today (R)" value={entry.stock_bought} onChange={s("stock_bought")} placeholder="e.g. 600" />
+    <Field label="Other Costs Today (R)" value={entry.other_costs} onChange={s("other_costs")} placeholder="e.g. transport, airtime..." />
+    {canSave && <div style={{ background: liveProfit >= 0 ? "#052e16" : "#1a0a0a", border: `1px solid ${liveProfit >= 0 ? ACC2 : "#ef4444"}55`, borderRadius: 10, padding: 14, marginTop: 8, textAlign: "center" }}><div style={{ color: MUTED, fontSize: 11, textTransform: "uppercase", letterSpacing: 1 }}>Today's Profit</div><div style={{ color: liveProfit >= 0 ? ACC2 : "#ef4444", fontWeight: 800, fontSize: 28 }}>R{liveProfit.toFixed(2)}</div></div>}
+    <Btn onClick={saveEntry} disabled={!canSave}>{canSave ? "📊 Save Today's Entry" : "Fill in float & sales to continue"}</Btn>
+  </Col><Col>
+    {weekTotal !== 0 && <Card border={`${ACC2}55`}><SH text="This Week's Summary" /><div style={{ display: "flex", justifyContent: "space-between", marginBottom: 8 }}><div><div style={{ color: MUTED, fontSize: 11 }}>Week Total</div><div style={{ color: ACC2, fontWeight: 800, fontSize: 22 }}>R{weekTotal.toFixed(2)}</div></div>{bestDay && <div style={{ textAlign: "right" }}><div style={{ color: MUTED, fontSize: 11 }}>Best Day</div><div style={{ color: ACC, fontWeight: 700 }}>R{bestDay.profit.toFixed(2)}</div><div style={{ color: MUTED, fontSize: 11 }}>{bestDay.date}</div></div>}</div></Card>}
+    {entries.length > 0 ? <Card><SH text="Recent Days" />{entries.slice(0, 10).map((e, i) => <div key={i} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "8px 0", borderBottom: `1px solid ${BORDER}` }}><div><div style={{ color: TEXT, fontSize: 13, fontWeight: 600 }}>{e.date}</div><div style={{ color: MUTED, fontSize: 11 }}>Sales: R{e.sales} · Stock: R{e.stock_bought || 0}</div></div><div style={{ color: e.profit >= 0 ? ACC2 : "#ef4444", fontWeight: 700, fontSize: 15 }}>{e.profit >= 0 ? "+" : ""}R{(e.profit||0).toFixed(2)}</div></div>)}</Card> : <Empty text="Save your first day's entry to start tracking" />}
+  </Col></Row>);
+}
+
+function LoadSheddingPlanner({ serverUrl, t }) {
+  const [f, setF] = useState({ stage: "Stage 2", duration: "2 hours", time_of_day: "Evening (peak hours)", has_generator: "No" });
+  const [res, setRes] = useState(null); const [load, setLoad] = useState(false); const [err, setErr] = useState(null);
+  const s = k => v => setF(p => ({ ...p, [k]: v }));
+  async function go() { setLoad(true); setRes(null); setErr(null); try { const _r = parseJSON(await callClaude(PROMPTS.loadshed, `Stage: ${f.stage}, Duration: ${f.duration}, Time: ${f.time_of_day}, Generator: ${f.has_generator}`, serverUrl)); if (!_r) throw new Error(t.error_unreadable); setRes(_r); } catch (e) { setErr(e?.message); } setLoad(false); }
+  const UC = { LOW: ACC2, MEDIUM: ACC, HIGH: "#ef4444", CRITICAL: "#ef4444" };
+  return (<Row><Col>
+    <Field label="Load Shedding Stage" value={f.stage} onChange={s("stage")} options={["Stage 1","Stage 2","Stage 3","Stage 4","Stage 5","Stage 6","Not sure"]} />
+    <Field label="How Long Will It Last?" value={f.duration} onChange={s("duration")} options={["1 hour","2 hours","3-4 hours","All day","Multiple times today"]} />
+    <Field label="When Is the Outage?" value={f.time_of_day} onChange={s("time_of_day")} options={["Morning (before 10am)","Midday","Evening (peak hours)","Night","Multiple slots"]} />
+    <Field label="Do You Have a Generator?" value={f.has_generator} onChange={s("has_generator")} options={["No","Yes - small generator","Yes - large generator","Inverter/battery backup"]} />
+    <Btn onClick={go} loading={load}>{load ? "⚡ Planning..." : "⚡ Get Load Shedding Plan"}</Btn>
+  </Col><Col>
+    {load && <Dots />}
+    {res && !load && <div>
+      {res.urgency && <Card border={`${UC[res.urgency]}55`}><div style={{ display: "flex", alignItems: "center", gap: 10 }}><Tag text={`${res.urgency} IMPACT`} color={UC[res.urgency]} /><div style={{ color: MUTED, fontSize: 12 }}>Extra revenue: <span style={{ color: ACC2, fontWeight: 700 }}>R{res.estimated_extra_daily_revenue}</span></div></div></Card>}
+      <Card border={`${ACC2}55`}><SH text="Stock Up On These NOW" />{res.stock_now?.map((item, i) => <div key={i} style={{ marginBottom: 10, paddingBottom: 10, borderBottom: `1px solid ${BORDER}` }}><div style={{ display: "flex", justifyContent: "space-between" }}><span style={{ color: TEXT, fontWeight: 600 }}>{item.product}</span>{item.markup_opportunity && <Tag text="💰 MARKUP" color={ACC} />}</div><div style={{ color: MUTED, fontSize: 12 }}>{item.reason} · Qty: {item.qty_to_stock}</div></div>)}</Card>
+      {res.avoid_stocking?.length > 0 && <Card border="#ef444455"><SH text="Don't Stock These" />{res.avoid_stocking.map((a, i) => <div key={i} style={{ color: "#ef4444", fontSize: 13, marginBottom: 4 }}>✗ {a.product} — <span style={{ color: MUTED }}>{a.reason}</span></div>)}</Card>}
+      {res.cash_handling_tip && <Card><div style={{ color: ACC, fontSize: 13 }}>💵 {res.cash_handling_tip}</div></Card>}
+      <Card><SH text="Operational Tips" />{res.operational_tips?.map((tip, i) => <div key={i} style={{ color: MUTED, fontSize: 13, marginBottom: 4 }}>• {tip}</div>)}</Card>
+    </div>}
+    {err && !load && <Err msg={err} />}
+    {!res && !err && !load && <Empty text="Load shedding plan will appear here" />}
+  </Col></Row>);
+}
+
+function StokvelManager() {
+  const [members, setMembers] = useState(() => { try { return JSON.parse(localStorage.getItem("spaza_stokvel_members") || "[]"); } catch { return []; } });
+  const [payments, setPayments] = useState(() => { try { return JSON.parse(localStorage.getItem("spaza_stokvel_payments") || "[]"); } catch { return []; } });
+  const [newMember, setNewMember] = useState("");
+  const [monthlyAmt, setMonthlyAmt] = useState(() => localStorage.getItem("spaza_stokvel_amt") || "500");
+  const [payForm, setPayForm] = useState({ member: "", month: new Date().toISOString().slice(0, 7), amount: "" });
+  function saveMember() { if (!newMember.trim()) return; const updated = [...members, { name: newMember.trim(), id: Date.now(), joined: Date.now() }]; setMembers(updated); localStorage.setItem("spaza_stokvel_members", JSON.stringify(updated)); setNewMember(""); }
+  function savePayment() { if (!payForm.member || !payForm.amount) return; const updated = [...payments, { ...payForm, saved_at: Date.now() }]; setPayments(updated); localStorage.setItem("spaza_stokvel_payments", JSON.stringify(updated)); setPayForm({ member: "", month: new Date().toISOString().slice(0, 7), amount: "" }); }
+  function saveAmt(v) { setMonthlyAmt(v); localStorage.setItem("spaza_stokvel_amt", v); }
+  function removeMember(id) { const updated = members.filter(m => m.id !== id); setMembers(updated); localStorage.setItem("spaza_stokvel_members", JSON.stringify(updated)); }
+  const currentMonth = new Date().toISOString().slice(0, 7);
+  const totalPool = members.length * parseFloat(monthlyAmt || 0);
+  const thisMonthPaid = payments.filter(p => p.month === currentMonth);
+  const paidNames = thisMonthPaid.map(p => p.member);
+  const unpaidMembers = members.filter(m => !paidNames.includes(m.name));
+  const allTimeTotal = payments.reduce((a, p) => a + parseFloat(p.amount || 0), 0);
+  return (<Row><Col>
+    <div style={{ marginBottom: 16 }}><div style={{ fontSize: 10, color: MUTED, marginBottom: 4, textTransform: "uppercase", letterSpacing: 1.5 }}>Monthly Contribution (R)</div><input value={monthlyAmt} onChange={e => saveAmt(e.target.value)} placeholder="e.g. 500" style={{ width: "100%", background: "#070f1d", border: `1px solid ${BORDER}`, borderRadius: 8, padding: "10px 12px", color: TEXT, fontSize: 14 }} /></div>
+    <div style={{ marginBottom: 16 }}><div style={{ fontSize: 10, color: MUTED, marginBottom: 4, textTransform: "uppercase", letterSpacing: 1.5 }}>Add Member</div><div style={{ display: "flex", gap: 8 }}><input value={newMember} onChange={e => setNewMember(e.target.value)} onKeyDown={e => e.key === "Enter" && saveMember()} placeholder="Member name..." style={{ flex: 1, background: "#070f1d", border: `1px solid ${BORDER}`, borderRadius: 8, padding: "10px 12px", color: TEXT, fontSize: 14 }} /><button onClick={saveMember} style={{ background: ACC, border: "none", borderRadius: 8, padding: "10px 16px", color: "#000", fontWeight: 700, cursor: "pointer" }}>Add</button></div></div>
+    {members.length > 0 && <Card><SH text="Members" />{members.map((m, i) => <div key={m.id || i} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "6px 0", borderBottom: `1px solid ${BORDER}` }}><span style={{ color: TEXT, fontSize: 13 }}>{m.name}</span><button onClick={() => removeMember(m.id)} style={{ background: "transparent", border: "none", color: MUTED, cursor: "pointer", fontSize: 12 }}>remove</button></div>)}</Card>}
+    {members.length > 0 && <div><div style={{ fontSize: 10, color: MUTED, marginBottom: 8, textTransform: "uppercase", letterSpacing: 1.5, marginTop: 12 }}>Record a Payment</div><Field label="Member" value={payForm.member} onChange={v => setPayForm(p => ({ ...p, member: v }))} options={["", ...members.map(m => m.name)]} /><Field label="Month" value={payForm.month} onChange={v => setPayForm(p => ({ ...p, month: v }))} placeholder="YYYY-MM" /><Field label="Amount Paid (R)" value={payForm.amount} onChange={v => setPayForm(p => ({ ...p, amount: v }))} placeholder={monthlyAmt} /><Btn onClick={savePayment} disabled={!payForm.member || !payForm.amount}>✓ Record Payment</Btn></div>}
+  </Col><Col>
+    {members.length === 0 ? <Empty text="Add members to start managing your stokvel" /> : <div>
+      <Card border={`${ACC2}55`}><SH text="This Month's Pool" /><div style={{ color: ACC2, fontWeight: 800, fontSize: 26 }}>R{totalPool.toLocaleString()}</div><div style={{ color: MUTED, fontSize: 12, marginTop: 4 }}>{members.length} members × R{monthlyAmt}/month</div><div style={{ marginTop: 10 }}><div style={{ color: TEXT, fontSize: 13 }}>Paid: <span style={{ color: ACC2, fontWeight: 700 }}>{thisMonthPaid.length}/{members.length}</span></div><div style={{ color: TEXT, fontSize: 13 }}>Collected: <span style={{ color: ACC, fontWeight: 700 }}>R{thisMonthPaid.reduce((a, p) => a + parseFloat(p.amount || 0), 0).toLocaleString()}</span></div></div></Card>
+      {unpaidMembers.length > 0 && <Card border="#ef444455"><SH text="Still to Pay" />{unpaidMembers.map((m, i) => <div key={i} style={{ color: "#ef4444", fontSize: 13, marginBottom: 4 }}>⏳ {m.name} — R{monthlyAmt} outstanding</div>)}</Card>}
+      {paidNames.length > 0 && <Card border={`${ACC2}55`}><SH text="Paid This Month ✓" />{paidNames.map((n, i) => <div key={i} style={{ color: ACC2, fontSize: 13, marginBottom: 4 }}>✓ {n}</div>)}</Card>}
+      <Card><SH text="All Time Collections" /><div style={{ color: ACC, fontWeight: 800, fontSize: 20 }}>R{allTimeTotal.toLocaleString()}</div><div style={{ color: MUTED, fontSize: 12 }}>{payments.length} payments recorded</div></Card>
+    </div>}
+  </Col></Row>);
+}
+
+function CompetitorChecker({ serverUrl, t }) {
+  const [f, setF] = useState({ competitor: "Shoprite", specials: "", is_payday: "No", location: "Soweto" });
+  const [res, setRes] = useState(null); const [load, setLoad] = useState(false); const [err, setErr] = useState(null);
+  const s = k => v => setF(p => ({ ...p, [k]: v }));
+  async function go() { setLoad(true); setRes(null); setErr(null); try { const _r = parseJSON(await callClaude(PROMPTS.competitor, `Competitor: ${f.competitor}, Specials: ${f.specials}, Payday: ${f.is_payday}, Location: ${f.location}`, serverUrl)); if (!_r) throw new Error(t.error_unreadable); setRes(_r); } catch (e) { setErr(e?.message); } setLoad(false); }
+  const AC = { UNDERCUT: "#ef4444", MATCH: ACC, IGNORE: MUTED, PREMIUM: ACC2 };
+  return (<Row><Col>
+    <Field label="Nearby Competitor" value={f.competitor} onChange={s("competitor")} options={["Shoprite","Boxer","Pick n Pay","Checkers","USave","SPAR","Other spaza"]} />
+    <Field label="Their Current Specials / Prices" value={f.specials} onChange={s("specials")} placeholder="e.g. Coke 2L R22, Bread R14.99, Simba R5.50..." rows={4} />
+    <Field label="Is It Payday Weekend?" value={f.is_payday} onChange={s("is_payday")} options={["No","Yes - month end","Yes - 15th","Yes - grant day (SASSA)"]} />
+    <Field label="Your Location" value={f.location} onChange={s("location")} options={["Soweto","Khayelitsha","Mamelodi","Mitchell's Plain","Tembisa","Umlazi","Other township"]} />
+    <Btn onClick={go} disabled={!f.specials} loading={load}>{load ? "🏪 Analysing..." : "🏪 Check My Pricing Strategy"}</Btn>
+  </Col><Col>
+    {load && <Dots />}
+    {res && !load && <div>
+      {res.overall_strategy && <Card border={`${ACC}55`}><SH text="Your Strategy This Week" /><div style={{ color: ACC, fontWeight: 600 }}>{res.overall_strategy}</div></Card>}
+      <Card><SH text="Product by Product" />{res.pricing_responses?.map((item, i) => <div key={i} style={{ marginBottom: 12, paddingBottom: 12, borderBottom: `1px solid ${BORDER}` }}><div style={{ display: "flex", justifyContent: "space-between", marginBottom: 4 }}><span style={{ color: TEXT, fontWeight: 600 }}>{item.product}</span><Tag text={item.action} color={AC[item.action] || ACC} /></div><div style={{ color: MUTED, fontSize: 12 }}>Their price: R{item.competitor_price} → Yours: <span style={{ color: ACC2, fontWeight: 700 }}>R{item.recommended_spaza_price}</span></div><div style={{ color: MUTED, fontSize: 11, marginTop: 2 }}>{item.reason}</div></div>)}</Card>
+      {res.payday_tips?.length > 0 && <Card border={`${ACC}55`}><SH text="Payday Tips" />{res.payday_tips.map((tip, i) => <div key={i} style={{ color: TEXT, fontSize: 13, marginBottom: 4 }}>💰 {tip}</div>)}</Card>}
+      {res.products_to_promote_this_week?.length > 0 && <Card><SH text="Push These This Week" />{res.products_to_promote_this_week.map((p, i) => <div key={i} style={{ color: ACC2, fontSize: 13, marginBottom: 4 }}>⭐ {p}</div>)}</Card>}
+    </div>}
+    {err && !load && <Err msg={err} />}
+    {!res && !err && !load && <Empty text="Pricing strategy will appear here" />}
+  </Col></Row>);
+}
+
+function WhatsAppOrders({ serverUrl, t }) {
+  const [tab, setTab] = useState("order");
+  const [contacts, setContacts] = useState(() => { try { return JSON.parse(localStorage.getItem("spaza_wa_contacts") || "[]"); } catch { return []; } });
+  const [orders, setOrders] = useState(() => { try { return JSON.parse(localStorage.getItem("spaza_wa_orders") || "[]"); } catch { return []; } });
+  const [newContact, setNewContact] = useState({ name: "", phone: "", type: "Wholesaler" });
+  const [f, setF] = useState({ supplierContact: "", supplierName: "Makro", products: "", delivery: "I will collect", account: "Cash customer" });
+  const [res, setRes] = useState(null); const [load, setLoad] = useState(false); const [err, setErr] = useState(null);
+  const [copied, setCopied] = useState(null);
+  const s = k => v => setF(p => ({ ...p, [k]: v }));
+
+  function saveContact() { if (!newContact.name || !newContact.phone) return; const phone = newContact.phone.replace(/\D/g,"").replace(/^0/,"27"); const updated = [...contacts, { ...newContact, phone, id: Date.now() }]; setContacts(updated); localStorage.setItem("spaza_wa_contacts", JSON.stringify(updated)); setNewContact({ name: "", phone: "", type: "Wholesaler" }); }
+  function removeContact(id) { const updated = contacts.filter(c => c.id !== id); setContacts(updated); localStorage.setItem("spaza_wa_contacts", JSON.stringify(updated)); }
+  function saveOrder(supplier, products, message) { const updated = [{ id: Date.now(), supplier, products, message, status: "SENT", date: new Date().toLocaleDateString("en-ZA"), notes: "" }, ...orders].slice(0, 50); setOrders(updated); localStorage.setItem("spaza_wa_orders", JSON.stringify(updated)); }
+  function updateStatus(id, status) { const updated = orders.map(o => o.id === id ? { ...o, status } : o); setOrders(updated); localStorage.setItem("spaza_wa_orders", JSON.stringify(updated)); }
+  function updateNotes(id, notes) { const updated = orders.map(o => o.id === id ? { ...o, notes } : o); setOrders(updated); localStorage.setItem("spaza_wa_orders", JSON.stringify(updated)); }
+
+  async function go() {
+    setLoad(true); setRes(null); setErr(null);
+    const contact = contacts.find(c => c.id === parseInt(f.supplierContact));
+    try { const _r = parseJSON(await callClaude(PROMPTS.whatsapp, `Supplier: ${contact?.name || f.supplierName}, Products: ${f.products}, Delivery: ${f.delivery}, Account: ${f.account}`, serverUrl)); if (!_r) throw new Error(t.error_unreadable); setRes(_r); } catch (e) { setErr(e?.message); }
+    setLoad(false);
+  }
+  function copyText(text, key) { navigator.clipboard.writeText(text).then(() => { setCopied(key); setTimeout(() => setCopied(null), 2000); }); }
+  function openWhatsApp(text, phone) { const base = phone ? `https://wa.me/${phone}` : "https://wa.me/"; window.open(`${base}?text=${encodeURIComponent(text)}`, "_blank"); if (text === res?.whatsapp_message) saveOrder(contacts.find(c => c.id === parseInt(f.supplierContact))?.name || f.supplierName, f.products, text); }
+
+  const selectedContact = contacts.find(c => c.id === parseInt(f.supplierContact));
+  const STATUS_COLOR = { SENT: ACC, RECEIVED: ACC2, PROBLEM: "#ef4444", CANCELLED: MUTED };
+  const STATUS_LABEL = { SENT: "📤 Sent", RECEIVED: "✅ Received", PROBLEM: "⚠️ Problem", CANCELLED: "❌ Cancelled" };
+  const TabBtn = ({ id, label }) => <button onClick={() => setTab(id)} style={{ flex: 1, background: tab === id ? ACC : "transparent", border: `1px solid ${tab === id ? ACC : BORDER}`, borderRadius: 8, padding: "8px 0", color: tab === id ? "#000" : MUTED, fontWeight: tab === id ? 700 : 500, fontSize: 12, cursor: "pointer" }}>{label}</button>;
+
+  return <div>
+    <div style={{ display: "flex", gap: 8, marginBottom: 20 }}><TabBtn id="order" label="📱 Generate Order" /><TabBtn id="contacts" label={`📒 Contacts (${contacts.length})`} /><TabBtn id="tracker" label={`📦 Tracker (${orders.length})`} /></div>
+    {tab === "order" && <Row><Col>
+      {contacts.length > 0 && <div style={{ marginBottom: 10 }}><div style={{ fontSize: 10, color: MUTED, marginBottom: 4, textTransform: "uppercase", letterSpacing: 1.5 }}>Send To (Saved Contact)</div><select value={f.supplierContact} onChange={e => s("supplierContact")(e.target.value)} style={{ width: "100%", background: "#070f1d", border: `1px solid ${f.supplierContact ? ACC : BORDER}`, borderRadius: 8, padding: "10px 12px", color: TEXT, fontSize: 14 }}><option value="">— No saved contact —</option>{contacts.map(c => <option key={c.id} value={c.id}>{c.name} — {c.phone}</option>)}</select>{selectedContact && <div style={{ marginTop: 6, padding: "6px 10px", background: "#052e16", borderRadius: 6, fontSize: 12, color: ACC2 }}>✓ Opens directly in {selectedContact.name}'s chat</div>}</div>}
+      {!f.supplierContact && <Field label="Supplier Name" value={f.supplierName} onChange={s("supplierName")} options={["Makro","Jumbo Cash & Carry","Metro Cash & Carry","Local rep","Shoprite Wholesale","Other"]} />}
+      <Field label="Products to Order" value={f.products} onChange={s("products")} placeholder="e.g. 2 cases Coke 2L, 50x bread, 10 boxes Simba..." rows={5} />
+      <Field label="Delivery or Collection?" value={f.delivery} onChange={s("delivery")} options={["I will collect","Please deliver","Delivery if free","Depends on price"]} />
+      <Field label="Account Type" value={f.account} onChange={s("account")} options={["Cash customer","Credit account","New customer","Loyal customer (2+ years)"]} />
+      <Btn onClick={go} disabled={!f.products} loading={load}>{load ? "📱 Writing..." : "📱 Generate WhatsApp Message"}</Btn>
+    </Col><Col>
+      {load && <Dots />}
+      {res && !load && <div>
+        {res.whatsapp_message && <Card border={`${ACC2}55`}><SH text="Main Order Message" /><div style={{ background: "#052e16", borderRadius: 8, padding: 14, color: TEXT, fontSize: 13, lineHeight: 1.7, whiteSpace: "pre-wrap", marginBottom: 10 }}>{res.whatsapp_message}</div><div style={{ display: "flex", gap: 8 }}><button onClick={() => copyText(res.whatsapp_message, "main")} style={{ flex: 1, background: copied === "main" ? ACC2 : ACC, border: "none", borderRadius: 8, padding: "9px 0", color: "#000", fontWeight: 700, fontSize: 13, cursor: "pointer" }}>{copied === "main" ? "✓ Copied!" : "📋 Copy"}</button><button onClick={() => openWhatsApp(res.whatsapp_message, selectedContact?.phone)} style={{ flex: 1, background: "#25d366", border: "none", borderRadius: 8, padding: "9px 0", color: "#000", fontWeight: 700, fontSize: 13, cursor: "pointer" }}>{selectedContact ? `📱 Open ${selectedContact.name}'s Chat` : "📱 Open WhatsApp"}</button></div></Card>}
+        {res.negotiation_line && <Card border={`${ACC}55`}><SH text="Ask for Discount" /><div style={{ background: "#1a1000", borderRadius: 8, padding: 12, color: TEXT, fontSize: 13, lineHeight: 1.6, whiteSpace: "pre-wrap", marginBottom: 8 }}>{res.negotiation_line}</div><button onClick={() => copyText(res.negotiation_line, "neg")} style={{ width: "100%", background: copied === "neg" ? ACC2 : DIM, border: "none", borderRadius: 8, padding: "8px 0", color: copied === "neg" ? "#000" : TEXT, fontWeight: 700, fontSize: 12, cursor: "pointer" }}>{copied === "neg" ? "✓ Copied!" : "📋 Copy Discount Line"}</button></Card>}
+        {res.follow_up_message && <Card><SH text="No Reply After 2 Hours?" /><div style={{ background: "#0d1e35", borderRadius: 8, padding: 12, color: MUTED, fontSize: 13, lineHeight: 1.6, whiteSpace: "pre-wrap", marginBottom: 8 }}>{res.follow_up_message}</div><button onClick={() => copyText(res.follow_up_message, "follow")} style={{ width: "100%", background: copied === "follow" ? ACC2 : DIM, border: "none", borderRadius: 8, padding: "8px 0", color: copied === "follow" ? "#000" : TEXT, fontWeight: 700, fontSize: 12, cursor: "pointer" }}>{copied === "follow" ? "✓ Copied!" : "📋 Copy Follow-Up"}</button></Card>}
+      </div>}
+      {err && !load && <Err msg={err} />}
+      {!res && !err && !load && <Empty text="Your WhatsApp order message will appear here" />}
+    </Col></Row>}
+    {tab === "contacts" && <Row><Col>
+      <Card border={`${ACC}55`}><SH text="Add Supplier Contact" />
+        <div style={{ marginBottom: 8 }}><div style={{ fontSize: 10, color: MUTED, marginBottom: 4, textTransform: "uppercase", letterSpacing: 1.5 }}>Name</div><input value={newContact.name} onChange={e => setNewContact(p => ({ ...p, name: e.target.value }))} placeholder="e.g. Sipho at Makro" style={{ width: "100%", background: "#070f1d", border: `1px solid ${BORDER}`, borderRadius: 8, padding: "10px 12px", color: TEXT, fontSize: 14 }} /></div>
+        <div style={{ marginBottom: 8 }}><div style={{ fontSize: 10, color: MUTED, marginBottom: 4, textTransform: "uppercase", letterSpacing: 1.5 }}>WhatsApp Number</div><input value={newContact.phone} onChange={e => setNewContact(p => ({ ...p, phone: e.target.value }))} placeholder="e.g. 0821234567" style={{ width: "100%", background: "#070f1d", border: `1px solid ${BORDER}`, borderRadius: 8, padding: "10px 12px", color: TEXT, fontSize: 14 }} /></div>
+        <Field label="Type" value={newContact.type} onChange={v => setNewContact(p => ({ ...p, type: v }))} options={["Wholesaler","Local rep","Bread supplier","Cold drink supplier","Airtime supplier","Other"]} />
+        <Btn onClick={saveContact} disabled={!newContact.name || !newContact.phone}>📒 Save Contact</Btn>
+      </Card>
+    </Col><Col>
+      {contacts.length === 0 ? <Empty text="No contacts saved yet" /> : <Card><SH text={`${contacts.length} Saved Suppliers`} />{contacts.map((c, i) => <div key={i} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "10px 0", borderBottom: `1px solid ${BORDER}` }}><div><div style={{ color: TEXT, fontWeight: 600, fontSize: 13 }}>{c.name}</div><div style={{ color: MUTED, fontSize: 12 }}>{c.type} · +{c.phone}</div></div><div style={{ display: "flex", gap: 6 }}><button onClick={() => window.open(`https://wa.me/${c.phone}`, "_blank")} style={{ background: "#25d366", border: "none", borderRadius: 6, padding: "5px 10px", color: "#000", fontWeight: 700, fontSize: 11, cursor: "pointer" }}>Chat</button><button onClick={() => removeContact(c.id)} style={{ background: "transparent", border: `1px solid ${BORDER}`, borderRadius: 6, padding: "5px 10px", color: MUTED, fontSize: 11, cursor: "pointer" }}>Remove</button></div></div>)}</Card>}
+    </Col></Row>}
+    {tab === "tracker" && <div>
+      {orders.length === 0 ? <Empty text="No orders tracked yet. Send an order to start tracking." /> : <div>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: 10, marginBottom: 16 }}>{["SENT","RECEIVED","PROBLEM","CANCELLED"].map(st => <div key={st} style={{ background: CARD, border: `1px solid ${STATUS_COLOR[st]}33`, borderRadius: 10, padding: 12, textAlign: "center" }}><div style={{ color: STATUS_COLOR[st], fontWeight: 800, fontSize: 20 }}>{orders.filter(o => o.status === st).length}</div><div style={{ color: MUTED, fontSize: 10, textTransform: "uppercase", letterSpacing: 1 }}>{st}</div></div>)}</div>
+        {orders.map((o) => <div key={o.id} style={{ background: CARD, border: `1px solid ${STATUS_COLOR[o.status]}44`, borderRadius: 12, padding: 14, marginBottom: 10 }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 8 }}><div><div style={{ color: TEXT, fontWeight: 700, fontSize: 14 }}>{o.supplier}</div><div style={{ color: MUTED, fontSize: 12 }}>{o.date} · {o.products?.slice(0,60)}{o.products?.length > 60 ? "..." : ""}</div></div><Tag text={STATUS_LABEL[o.status]} color={STATUS_COLOR[o.status]} /></div>
+          <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginBottom: 8 }}>{["SENT","RECEIVED","PROBLEM","CANCELLED"].map(st => <button key={st} onClick={() => updateStatus(o.id, st)} style={{ background: o.status === st ? STATUS_COLOR[st] : "transparent", border: `1px solid ${STATUS_COLOR[st]}55`, borderRadius: 6, padding: "3px 10px", color: o.status === st ? "#000" : STATUS_COLOR[st], fontSize: 11, fontWeight: 700, cursor: "pointer" }}>{st}</button>)}</div>
+          <input value={o.notes} onChange={e => updateNotes(o.id, e.target.value)} placeholder="Add notes e.g. 'delivered Friday, missing bread'" style={{ width: "100%", background: "#070f1d", border: `1px solid ${BORDER}`, borderRadius: 6, padding: "7px 10px", color: TEXT, fontSize: 12 }} />
+        </div>)}
+      </div>}
+    </div>}
+  </div>;
+}
+
 // ─── MAIN APP ─────────────────────────────────────────────────────────────────
 export default function SpazaIQ() {
   const [active, setActive] = useState("stockorder");
   const [lang, setLang] = useState("en");
   const [serverUrl, setServerUrl] = useState("https://spazaiq-server-production.up.railway.app");
+  const [draftUrl, setDraftUrl] = useState("https://spazaiq-server-production.up.railway.app");
   const [showSettings, setShowSettings] = useState(false);
   const t = LANG[lang];
   const activeT = TOOLS.find(tool => tool.id === active);
   const groups = [...new Set(TOOLS.map(tool => tool.group))];
   const total = TOOLS.length;
 
-  const COMPONENTS = {
-    stockorder: <StockAdvisor serverUrl={serverUrl} t={t} />,
-    pricing:    <PricingCalc serverUrl={serverUrl} t={t} />,
-    cashflow:   <CashFlow serverUrl={serverUrl} t={t} />,
-    supplier:   <SupplierNeg serverUrl={serverUrl} t={t} />,
-    sars:       <SarsTax serverUrl={serverUrl} t={t} />,
-    uif:        <UifReg serverUrl={serverUrl} t={t} />,
-    cipc:       <CipcGuide serverUrl={serverUrl} t={t} />,
-    license:    <BizLicence serverUrl={serverUrl} t={t} />,
-    loan:       <LoanElig serverUrl={serverUrl} t={t} />,
-    grant:      <GrantFinder serverUrl={serverUrl} t={t} />,
-    expand:     <GrowthAdvisor serverUrl={serverUrl} t={t} />,
-  };
+  function renderTool(id) {
+    const props = { serverUrl, t };
+    switch(id) {
+      case "stockorder": return <StockAdvisor {...props} />;
+      case "pricing":    return <PricingCalc {...props} />;
+      case "cashflow":   return <CashFlow {...props} />;
+      case "supplier":   return <SupplierNeg {...props} />;
+      case "profit":     return <DailyProfitTracker />;
+      case "loadshed":   return <LoadSheddingPlanner {...props} />;
+      case "stokvel":    return <StokvelManager />;
+      case "competitor": return <CompetitorChecker {...props} />;
+      case "whatsapp":   return <WhatsAppOrders {...props} />;
+      case "sars":       return <SarsTax {...props} />;
+      case "uif":        return <UifReg {...props} />;
+      case "cipc":       return <CipcGuide {...props} />;
+      case "license":    return <BizLicence {...props} />;
+      case "loan":       return <LoanElig {...props} />;
+      case "grant":      return <GrantFinder {...props} />;
+      case "expand":     return <GrowthAdvisor {...props} />;
+      default:           return null;
+    }
+  }
 
   return (
     <div style={{ minHeight: "100vh", background: BG, color: TEXT, fontFamily: "'Inter',system-ui,sans-serif" }}>
@@ -544,36 +744,28 @@ export default function SpazaIQ() {
         @keyframes blink{0%,80%,100%{transform:scale(.6);opacity:.3}40%{transform:scale(1);opacity:1}}
       `}</style>
 
-      {/* STATUS BAR */}
       <div style={{ background: "#03200e", borderBottom: `1px solid ${ACC2}55`, padding: "6px 16px", display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
         <div style={{ width: 6, height: 6, background: ACC2, borderRadius: "50%", boxShadow: `0 0 6px ${ACC2}`, flexShrink: 0 }} />
         <span style={{ fontSize: 11, color: ACC2, fontWeight: 600 }}>{t.tools_ready}</span>
         <div style={{ marginLeft: "auto", display: "flex", gap: 4, alignItems: "center", flexWrap: "wrap" }}>
-          <select value={lang} onChange={e => setLang(e.target.value)}
-            style={{ background: "#070f1d", border: `1px solid ${ACC}`, borderRadius: 6, padding: "3px 8px", color: ACC, fontSize: 11, cursor: "pointer", fontWeight: 600 }}>
-            {Object.entries(LANG).map(([code, l]) => (
-              <option key={code} value={code}>{l.flag} {l.name}</option>
-            ))}
+          <select value={lang} onChange={e => setLang(e.target.value)} style={{ background: "#070f1d", border: `1px solid ${ACC}`, borderRadius: 6, padding: "3px 8px", color: ACC, fontSize: 11, cursor: "pointer", fontWeight: 600 }}>
+            {Object.entries(LANG).map(([code, l]) => <option key={code} value={code}>{l.flag} {l.name}</option>)}
           </select>
-          <button onClick={() => setShowSettings(v => !v)} style={{ background: showSettings ? ACC+"22" : "transparent", border: `1px solid ${BORDER}`, borderRadius: 6, padding: "2px 8px", color: MUTED, fontSize: 11, cursor: "pointer" }}>⚙️</button>
+          <button onClick={() => { setDraftUrl(serverUrl); setShowSettings(v => !v); }} style={{ background: showSettings ? ACC+"22" : "transparent", border: `1px solid ${BORDER}`, borderRadius: 6, padding: "2px 8px", color: MUTED, fontSize: 11, cursor: "pointer" }}>⚙️</button>
         </div>
       </div>
 
-      {/* SETTINGS PANEL */}
-      {showSettings && (
-        <div style={{ background: "#060e1a", borderBottom: `1px solid ${BORDER}`, padding: "12px 16px" }}>
-          <div style={{ maxWidth: 600, margin: "0 auto" }}>
-            <div style={{ fontSize: 10, color: MUTED, marginBottom: 4, textTransform: "uppercase", letterSpacing: 1.5 }}>{t.server_url_label}</div>
-            <div style={{ display: "flex", gap: 8 }}>
-              <input value={serverUrl} onChange={e => setServerUrl(e.target.value)} style={{ flex: 1, background: "#070f1d", border: `1px solid ${BORDER}`, borderRadius: 8, padding: "8px 12px", color: TEXT, fontSize: 13 }} />
-              <button onClick={() => setShowSettings(false)} style={{ background: ACC, border: "none", borderRadius: 8, padding: "8px 16px", color: "#000", fontWeight: 700, fontSize: 13, cursor: "pointer" }}>Save</button>
-            </div>
-            <div style={{ fontSize: 10, color: MUTED, marginTop: 6 }}>Local: http://localhost:4000 · Production: your Railway/Render URL</div>
+      {showSettings && <div style={{ background: "#060e1a", borderBottom: `1px solid ${BORDER}`, padding: "12px 16px" }}>
+        <div style={{ maxWidth: 600, margin: "0 auto" }}>
+          <div style={{ fontSize: 10, color: MUTED, marginBottom: 4, textTransform: "uppercase", letterSpacing: 1.5 }}>{t.server_url_label}</div>
+          <div style={{ display: "flex", gap: 8 }}>
+            <input value={draftUrl} onChange={e => setDraftUrl(e.target.value)} style={{ flex: 1, background: "#070f1d", border: `1px solid ${BORDER}`, borderRadius: 8, padding: "8px 12px", color: TEXT, fontSize: 13 }} />
+            <button onClick={() => { setServerUrl(draftUrl); setShowSettings(false); }} style={{ background: ACC, border: "none", borderRadius: 8, padding: "8px 16px", color: "#000", fontWeight: 700, fontSize: 13, cursor: "pointer" }}>Save</button>
           </div>
+          <div style={{ fontSize: 10, color: MUTED, marginTop: 6 }}>Local: http://localhost:4000 · Production: your Railway/Render URL</div>
         </div>
-      )}
+      </div>}
 
-      {/* HEADER */}
       <div style={{ background: "linear-gradient(180deg,#060e1a,#050c15)", borderBottom: `1px solid ${BORDER}`, padding: "0 16px" }}>
         <div style={{ maxWidth: 1200, margin: "0 auto" }}>
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "12px 0 8px" }}>
@@ -589,7 +781,6 @@ export default function SpazaIQ() {
               <span style={{ fontSize: 11, color: ACC2, fontWeight: 600 }}>{t.live}</span>
             </div>
           </div>
-          {/* Nav — scrollable on mobile */}
           <div style={{ overflowX: "auto", paddingBottom: 2 }}>
             {groups.map(group => (
               <div key={group}>
@@ -597,12 +788,7 @@ export default function SpazaIQ() {
                 <div style={{ display: "flex", gap: 2 }}>
                   {TOOLS.filter(tool => tool.group === group).map(tool => {
                     const isActive = active === tool.id;
-                    return (
-                      <button key={tool.id} onClick={() => setActive(tool.id)}
-                        style={{ background: isActive ? ACC : "transparent", border: "none", borderRadius: "8px 8px 0 0", padding: "6px 10px", color: isActive ? "#000" : DIM, fontWeight: isActive ? 700 : 500, fontSize: 11, cursor: "pointer", display: "flex", alignItems: "center", gap: 4, whiteSpace: "nowrap", borderBottom: isActive ? `2px solid ${ACC}` : "2px solid transparent" }}>
-                        <span>{tool.icon}</span><span>{tool.label}</span>
-                      </button>
-                    );
+                    return <button key={tool.id} onClick={() => setActive(tool.id)} style={{ background: isActive ? ACC : "transparent", border: "none", borderRadius: "8px 8px 0 0", padding: "6px 10px", color: isActive ? "#000" : DIM, fontWeight: isActive ? 700 : 500, fontSize: 11, cursor: "pointer", display: "flex", alignItems: "center", gap: 4, whiteSpace: "nowrap", borderBottom: isActive ? `2px solid ${ACC}` : "2px solid transparent" }}><span>{tool.icon}</span><span>{tool.label}</span></button>;
                   })}
                 </div>
               </div>
@@ -611,7 +797,6 @@ export default function SpazaIQ() {
         </div>
       </div>
 
-      {/* CONTENT */}
       <div style={{ maxWidth: 1200, margin: "0 auto", padding: "20px 16px" }}>
         <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 18 }}>
           <span style={{ fontSize: 22 }}>{activeT?.icon}</span>
@@ -620,7 +805,7 @@ export default function SpazaIQ() {
             <div style={{ fontSize: 10, color: ACC, textTransform: "uppercase", letterSpacing: 1.5, marginTop: 2 }}>SpazaIQ AI Tool</div>
           </div>
         </div>
-        {COMPONENTS[active]}
+        {renderTool(active)}
       </div>
 
       <div style={{ textAlign: "center", padding: "14px 16px", borderTop: `1px solid ${BORDER}`, color: DIM, fontSize: 10 }}>
